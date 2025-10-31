@@ -27,55 +27,30 @@ justify-content: center;
 align-items: center;
 min-height: 100vh;
 flex-direction: column;
-
 backdrop-filter: blur(8px);
-
 background: rgba(0,0,0,0.6);
-
 user-select: none;
-
 overflow-y: auto;
-
 -webkit-overflow-scrolling: touch;
-
 }
-
 h1 {
-
 font-family: 'Poppins', sans-serif;
-
 color: #fff;
-
 text-align: center;
-
 font-size: 2.5rem;
-
 margin-bottom: 20px;
-
 text-shadow: 3px 3px 15px rgba(0,0,0,0.5);
-
 }
-
 #welcomeMessage {
-
 font-family: 'Great Vibes', cursive;
-
 color: #fff;
-
 font-size: 3rem;
-
 margin-bottom: 20px;
-
 text-align: center;
-
 }
-
 ./* Main page container */
-
 .container {
-
 width: 100%;
-
 min-height: 100vh;
 
 display: flex;
