@@ -345,99 +345,180 @@ function toggleFolder(id) {
 document.addEventListener('contextmenu', e => {
   // still allow context menu for devtools with shift+rightclick on some browsers,
   // but block the usual right-click on page content
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js"></script>
+<script>
+/* ================================
+   FIREBASE CONFIGURATION
+   ================================ */
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+  projectId: "YOUR_PROJECT_ID",
+  appId: "YOUR_APP_ID"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+
+/* ================================
+   LOGIN TIMER & COOLDOWN SYSTEM
+   ================================ */
+const form = document.getElementById('loginForm');
+const loginSection = document.getElementById('loginSection');
+const successSection = document.getElementById('successSection');
+const loginMessage = document.getElementById('loginMessage');
+const timeoutMessage = document.getElementById('timeoutMessage');
+const countdownDisplay = document.getElementById('countdownDisplay');
+const loading = document.getElementById('loading');
+
+const ATTEMPT_TIME = 30;
+const COOLDOWN_TIME = 30 * 60;
+
+let timerInterval;
+let remainingTime;
+
+const formatTime = (s) =>
+  `${Math.floor(s / 60).toString().padStart(2, '0')}:${(s % 60).toString().padStart(2, '0')}`;
+
+function updateDisplay() {
+  countdownDisplay.textContent =
+    remainingTime > 0
+      ? `${remainingTime <= ATTEMPT_TIME ? "⏳ Time left" : "❌ Login disabled"}: ${formatTime(remainingTime)}`
+      : "";
+}
+
+function startTimer(seconds, isCooldown = false) {
+  remainingTime = seconds;
+  updateDisplay();
+  clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    remainingTime--;
+    updateDisplay();
+    if (remainingTime <= 0) {
+      clearInterval(timerInterval);
+      if (isCooldown) {
+        form.querySelectorAll('input, button').forEach(el => el.disabled = false);
+        timeoutMessage.style.display = 'none';
+        localStorage.removeItem('cooldownEnd');
+        startTimer(ATTEMPT_TIME);
+      } else {
+        triggerCooldown();
+      }
+    }
+  }, 1000);
+}
+
+function triggerCooldown() {
+  form.querySelectorAll('input, button').forEach(el => el.disabled = true);
+  timeoutMessage.style.display = 'block';
+  const cooldownEnd = Math.floor(Date.now() / 1000) + COOLDOWN_TIME;
+  localStorage.setItem('cooldownEnd', cooldownEnd);
+  startTimer(COOLDOWN_TIME, true);
+}
+
+function initTimer() {
+  const storedCooldown = localStorage.getItem('cooldownEnd');
+  const now = Math.floor(Date.now() / 1000);
+  if (storedCooldown && now < storedCooldown) {
+    form.querySelectorAll('input, button').forEach(el => el.disabled = true);
+    timeoutMessage.style.display = 'block';
+    startTimer(storedCooldown - now, true);
+  } else {
+    localStorage.removeItem('cooldownEnd');
+    startTimer(ATTEMPT_TIME);
+  }
+}
+
+form.addEventListener('submit', e => {
   e.preventDefault();
+  loading.style.display = 'block';
+  loginMessage.style.display = 'none';
+
+  const email = document.getElementById('username').value.trim();
+  const password = document.getElementById('password').value.trim();
+
+  auth.signInWithEmailAndPassword(email, password)
+    .then(user => {
+      if (user.user.email === "virajgite32@gmail.com") {
+        loginSection.style.display = 'none';
+        successSection.style.display = 'block';
+        clearInterval(timerInterval);
+      } else {
+        loginMessage.textContent = "Unauthorized email.";
+        loginMessage.style.display = 'block';
+      }
+      loading.style.display = 'none';
+    })
+    .catch(error => {
+      loginMessage.textContent = error.message;
+      loginMessage.style.display = 'block';
+      loading.style.display = 'none';
+    });
 });
+
+/* ================================
+   UI HELPERS & LINK PROTECTION
+   ================================ */
+const scrollBtn = document.getElementById('scrollToTopBtn');
+window.addEventListener('scroll', () => {
+  scrollBtn.style.display = (window.scrollY > 200) ? 'block' : 'none';
+});
+function scrollToTop() {
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function toggleFolder(id) {
+  const el = document.getElementById(id);
+  el.style.display = (el.style.display === 'none') ? 'block' : 'none';
+}
+
+document.addEventListener('contextmenu', e => e.preventDefault());
 document.addEventListener('keydown', e => {
-  // block Ctrl/Cmd + C / V / U / S etc for casual users
   if ((e.ctrlKey || e.metaKey) && ['c','v','u','s','x','a'].includes(e.key.toLowerCase())) {
     e.preventDefault();
   }
 });
 
-/* --- Link protection strategy:
-   - remove native href from links (kept as href="#") so they don't appear as draggable anchors
-   - real destination is stored in data-url attribute
-   - JS opens the destination on click/auxclick (middle-click)
-   - block dragstart on anchors, block selection & copy events on anchors
-   - IMPORTANT: this deters casual copying/dragging but cannot stop a determined user with devtools or server access.
-*/
 function protectLinks() {
   document.querySelectorAll('.secure-link').forEach(a => {
-    // ensure anchor is not draggable and cannot be selected
     a.draggable = false;
     a.style.userSelect = 'none';
-    a.style.webkitUserSelect = 'none';
-    a.style.mozUserSelect = 'none';
-    a.style.msUserSelect = 'none';
-
-    // open encoded destination on click (left click)
-    a.addEventListener('click', (ev) => {
+    a.addEventListener('click', ev => {
       ev.preventDefault();
       const dest = a.getAttribute('data-url');
-      if (!dest) return;
-      // open in a new tab (safest)
-      window.open(dest, '_blank', 'noopener,noreferrer');
+      if (dest) window.open(dest, '_blank', 'noopener,noreferrer');
     });
-
-    // handle middle-click (auxclick) so users can still open in new tab
-    a.addEventListener('auxclick', (ev) => {
+    a.addEventListener('auxclick', ev => {
       if (ev.button === 1) {
         ev.preventDefault();
         const dest = a.getAttribute('data-url');
-        if (!dest) return;
-        window.open(dest, '_blank', 'noopener,noreferrer');
+        if (dest) window.open(dest, '_blank', 'noopener,noreferrer');
       }
     });
-
-    // prevent dragstart originating from anchor
-    a.addEventListener('dragstart', (ev) => {
-      ev.preventDefault();
-    });
-
-    // block copy events on anchor
-    a.addEventListener('copy', (ev) => {
-      ev.preventDefault();
-    });
-
-    // block selecting text using mouse on anchor
-    a.addEventListener('selectstart', (ev) => {
-      ev.preventDefault();
-    });
+    a.addEventListener('dragstart', ev => ev.preventDefault());
+    a.addEventListener('copy', ev => ev.preventDefault());
+    a.addEventListener('selectstart', ev => ev.preventDefault());
   });
 
-  // additionally: prevent dragging any element that contains a data-url
-  document.addEventListener('dragstart', (ev) => {
-    if (ev.target && ev.target.closest && ev.target.closest('.secure-link')) {
-      ev.preventDefault();
-    }
+  document.addEventListener('dragstart', ev => {
+    if (ev.target && ev.target.closest('.secure-link')) ev.preventDefault();
   });
-
-  // block copy from page root (prevents Ctrl+C / selection-based copy)
-  document.addEventListener('copy', (ev) => {
-    // stop default copy if selection is non-empty and it's from within drive-links
-    // this is a blunt tool — it prevents normal copy on the page as well
-    ev.preventDefault();
-  });
+  document.addEventListener('copy', ev => ev.preventDefault());
 }
 
-/* --- Initialize protections after DOM ready --- */
 document.addEventListener('DOMContentLoaded', () => {
-  // protect links as soon as possible
   protectLinks();
-
-  // If you still had href attributes when authoring, make sure they are cleared to avoid browser showing them as drag targets
   document.querySelectorAll('.secure-link').forEach(a => {
-    // Ensure href is inert (we keep an inert # to maintain accessibility and focusability)
     a.setAttribute('href', '#');
     a.setAttribute('role', 'link');
     a.setAttribute('tabindex', '0');
   });
 });
 
-/* --- Start timer after window fully loads --- */
 window.onload = initTimer;
-
 </script>
+
 
 </body>
 </html>
