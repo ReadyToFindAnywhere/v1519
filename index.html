@@ -323,6 +323,9 @@ function initTimer() {
   }
 }
 
+/* ================================
+   LOGIN LOGIC WITH UID RESTRICTION
+   ================================ */
 form.addEventListener('submit', e => {
   e.preventDefault();
   loading.style.display = 'block';
@@ -333,18 +336,20 @@ form.addEventListener('submit', e => {
 
   auth.signInWithEmailAndPassword(email, password)
     .then(user => {
-      if (user.user.email === "virajgite32@gmail.com") {
+      const allowedUID = "svyMoZ8GfTUtnWT0IVja1jtn4be2";
+      if (user.user.uid === allowedUID) {
         loginSection.style.display = 'none';
         successSection.style.display = 'block';
         clearInterval(timerInterval);
       } else {
-        loginMessage.textContent = "Unauthorized email.";
+        loginMessage.textContent = "Access denied.";
         loginMessage.style.display = 'block';
+        auth.signOut();
       }
       loading.style.display = 'none';
     })
     .catch(error => {
-      loginMessage.textContent = error.message;
+      loginMessage.textContent = "Login failed. Please try again.";
       loginMessage.style.display = 'block';
       loading.style.display = 'none';
     });
