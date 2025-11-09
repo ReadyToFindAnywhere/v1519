@@ -1,9 +1,0 @@
-{
-  "hosting": {
-    "public": ".",  // 👈 This means Firebase will deploy from the root folder
-    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
-    "rewrites": [
-      { "source": "**", "destination": "/index.html" }
-    ]
-  }
-}
