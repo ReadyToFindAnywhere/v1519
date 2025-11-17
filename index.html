@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-R" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Ready To Find Here</title> 
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <title>Ready To Find Here</title>
 
     <meta name="description" content="Ready To Find Anywhere by Viraj Rajendra Gite – music, files, contacts, and more.">
     <meta name="keywords" content="Ready To Find Anywhere, Viraj Gite, GitHub Pages, personal dashboard">
@@ -43,6 +43,9 @@ body {
   -ms-user-select: none;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+
+  /* MODIFICATION: Prevent default touch actions like pinch-zoom */
+  touch-action: pan-x pan-y;
 }
 
 h1 { font-family: 'Poppins', sans-serif; color: #fff; text-align:center; font-size:2.5rem; margin-bottom:20px; text-shadow:3px 3px 15px rgba(0,0,0,0.5); }
@@ -195,7 +198,7 @@ footer { text-align:center; color:#fff; font-size:0.9rem; padding:10px; backgrou
           <div class="folder" ondblclick="window.location.href='tel:+919404684107'"><i class="fas fa-phone"></i> Rajendra Gite</div>
           <div class="folder" ondblclick="window.location.href='tel:+919405174315'"><i class="fas fa-phone"></i> Archana Gite</div>
           <div class="folder" ondblclick="window.location.href='tel:+917756066502'"><i class="fas fa-phone"></i> Archana Gite</div>
-          <div class="folder" ondblclick="window.location.href='tel:+919011859170'"><i class="fas fa-phone"></i> Umbri Baba</div> 
+          <div class="folder" ondblclick="window.location.href='tel:+919011859170'"><i class="fas fa-phone"></i> Umbri Baba</div>
           <div class="folder" ondblclick="window.location.href='tel:+919890603513'"><i class="fas fa-phone"></i> Sandip Gite</div>
           <div class="folder" ondblclick="window.location.href='tel:+919284120495'"><i class="fas fa-phone"></i> Viraj Gite</div>
           <div class="folder" ondblclick="window.location.href='tel:+919075307107'"><i class="fas fa-phone"></i> Sayali Gite</div>
@@ -220,7 +223,7 @@ footer { text-align:center; color:#fff; font-size:0.9rem; padding:10px; backgrou
 <button id="scrollToTopBtn" onclick="scrollToTop()"><i class="fas fa-arrow-up"></i></button>
 <footer><p>&copy; Created By Mr. Viraj Rajendra Gite. All Rights Reserved.</p></footer>
 
-  
+
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js"></script>
 
@@ -330,7 +333,7 @@ footer { text-align:center; color:#fff; font-size:0.9rem; padding:10px; backgrou
         if (userCredential.user.uid === allowedUID) {
           loginSection.style.display = 'none';
           successSection.style.display = 'block';
-          clearInterval(timerInterval); // <-- DEBUG: Removed stray "source" word
+          clearInterval(timerInterval);
         } else {
           loginMessage.textContent = "Access denied.";
           loginMessage.style.display = 'block';
@@ -353,7 +356,7 @@ footer { text-align:center; color:#fff; font-size:0.9rem; padding:10px; backgrou
   window.addEventListener('scroll', () => {
     scrollBtn.style.display = (window.scrollY > 200) ? 'block' : 'none';
   });
-  
+
   // Make scrollToTop globally accessible for the button onclick
   window.scrollToTop = function() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -368,7 +371,7 @@ footer { text-align:center; color:#fff; font-size:0.9rem; padding:10px; backgrou
 
     // Determine the new state
     const newState = folder.style.display === 'block' ? 'none' : 'block';
-    
+
     // Apply the new state
     folder.style.display = newState;
 
@@ -376,7 +379,7 @@ footer { text-align:center; color:#fff; font-size:0.9rem; padding:10px; backgrou
     if (newState === 'none') {
       // Find all elements with the class 'subfolder' *inside* the one we just closed
       const nestedSubfolders = folder.querySelectorAll('.subfolder');
-      
+
       nestedSubfolders.forEach(sub => {
         sub.style.display = 'none';
       });
